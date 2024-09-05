@@ -6,39 +6,102 @@ namespace GerenciadorDeBiblioteca
 {
     public class Livro
     {
-        /*public string Titulo { get; private set; }
+        /*
+        public string Titulo { get; private set; }
+        public Autor IdAutor { get; private set; }
         public string Editora { get; private set; }
         public short AnoDePublicacao { get; private set; }
         public short NumeroDePaginas { get; private set; }
-        public bool LivroAlugado { get; set; }*/
-
+        public bool LivroAlugado { get; set; }
+        public byte NumeroDeExemplares {  get; private set; }
+        */
         public Livro() { }
 
         public void CadastrarLivro(string connectionString)
         {
             Console.WriteLine("Qual o título do livro? (OBRIGATÓRIO)");
             string titulo = Console.ReadLine();
-            Console.WriteLine("Qual a editora do livro? (OPCIONAL)");
-            string editora = Console.ReadLine();
-            Console.WriteLine("Qual o ano de publicação do livro? (OPCIONAL)");
-            string anoDePublicacao = Console.ReadLine();
-            Console.WriteLine("Qual o número de páginas do livro? (OPCIONAL)");
-            string numeroDePaginas = Console.ReadLine();
+            bool livroJaExiste = false;
 
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
-                string query = "INSERT INTO Livro (Titulo, Editora, AnoPublicacao, NumeroPaginas, LivroAlugado)" +
-                    "values (@titulo, @editora, @anoDePublicacao, @NumeroDePaginas, @LivroAlugado)";
-                using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
+                string query = "SELECT COUNT(*) FROM LIVRO WHERE TITULO = @Titulo";
+                SqlCommand command = new SqlCommand(query, sqlConnection);
+                command.Parameters.AddWithValue("@Titulo", titulo);
+
+                int? qtdeDeLivros = (int?)command.ExecuteScalar();
+                if (qtdeDeLivros != 0)
                 {
-                    cmd.Parameters.AddWithValue("@titulo", titulo);
-                    cmd.Parameters.AddWithValue("@editora", editora);
-                    cmd.Parameters.AddWithValue("@anoDePublicacao", anoDePublicacao);
-                    cmd.Parameters.AddWithValue("@numeroDePaginas", numeroDePaginas);
-                    cmd.Parameters.AddWithValue("@livroAlugado", false);
-                    cmd.ExecuteNonQuery();
-                    Console.WriteLine("Livro inserido com sucesso.");
+                    livroJaExiste = true;
+                    Console.WriteLine("Livro já cadastrado!");
+                }
+            }
+            if (livroJaExiste == false)
+            {
+                Console.WriteLine("Qual o autor do livro? (OBRIGATÓRIO)");
+                string autorDoLivro = Console.ReadLine();
+                int? idAutor = 0;
+
+                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                {
+                    sqlConnection.Open();
+                    string query = "SELECT Id FROM AUTOR WHERE NOME = @Nome";
+                    SqlCommand command = new SqlCommand(query, sqlConnection);
+                    command.Parameters.AddWithValue("@Nome", autorDoLivro);
+
+                    idAutor = (int?)command.ExecuteScalar();
+                }
+                if (idAutor == null)
+                {
+                    Autor autor = new Autor();
+                    autor.CadastrarAutor(connectionString, autorDoLivro);
+                    idAutor = autor.Id;
+                }
+
+                Console.WriteLine("Cadastrar quantos exemplares desse livro? (OBRIGATÓRIO)");
+                string numeroDeExemplaresString = Console.ReadLine();
+                byte numeroDeExemplares = 0;
+
+                while (numeroDeExemplares == 0)
+                {
+                    try
+                    {
+                        numeroDeExemplares = byte.Parse(numeroDeExemplaresString);
+                    }
+                    catch (FormatException ex)
+                    {
+                        Console.WriteLine("Não foi possível obter o número de exemplares. " + ex.Message + "\n");
+                        Console.WriteLine("Cadastrar quantos exemplares desse livro? (OBRIGATÓRIO)");
+                        numeroDeExemplaresString = Console.ReadLine();
+                    }
+                }
+
+                Console.WriteLine("Qual a editora do livro? (OPCIONAL)");
+                string editora = Console.ReadLine();
+                Console.WriteLine("Qual o ano de publicação do livro? (OPCIONAL)");
+                string anoDePublicacao = Console.ReadLine();
+                Console.WriteLine("Qual o número de páginas do livro? (OPCIONAL)");
+                string numeroDePaginas = Console.ReadLine();
+
+
+                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                {
+                    sqlConnection.Open();
+                    string query = "INSERT INTO Livro (Titulo, IdAutor, Editora, AnoPublicacao, NumeroPaginas, LivroAlugado, numeroDeExemplares)" +
+                        "values (@titulo, @idAutor, @editora, @anoDePublicacao, @NumeroDePaginas, @LivroAlugado, @numeroDeExemplares)";
+                    using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
+                    {
+                        cmd.Parameters.AddWithValue("@titulo", titulo);
+                        cmd.Parameters.AddWithValue("@idAutor", idAutor);
+                        cmd.Parameters.AddWithValue("@editora", editora);
+                        cmd.Parameters.AddWithValue("@anoDePublicacao", anoDePublicacao);
+                        cmd.Parameters.AddWithValue("@numeroDePaginas", numeroDePaginas);
+                        cmd.Parameters.AddWithValue("@livroAlugado", false);
+                        cmd.Parameters.AddWithValue("@numeroDeExemplares", numeroDeExemplares);
+                        cmd.ExecuteNonQuery();
+                        Console.WriteLine("Livro inserido com sucesso.");
+                    }
                 }
             }
         }
@@ -82,9 +145,9 @@ namespace GerenciadorDeBiblioteca
 
         public void ConsultarLivro(string connectionString)
         {
-            Console.WriteLine("Para consultar pelo título, digite 1.\nPesquisar pelo autor, digite 2.");
+            Console.WriteLine("Consultar pelo título, digite 1.\nConsultar pelo autor, digite 2.");
             string escolhaConsulta = Console.ReadLine();
-            
+
             if (escolhaConsulta == "1")
             {
                 Console.WriteLine("Qual o título do livro a ser pesquisado?");
@@ -100,11 +163,12 @@ namespace GerenciadorDeBiblioteca
                         using (SqlDataReader reader = cmd.ExecuteReader())
                             while (reader.Read())
                             {
-                                Console.WriteLine($"Titulo: {reader["Titulo"]}\n" +
-                                    $"Editora: {reader["Editora"]}\n" +
-                                    $"Ano de publicação: {reader["AnoPublicacao"]}\n" +
-                                    $"Numero de páginas: {reader["NumeroPaginas"]}\n" +
-                                    $"Livro alugado: {reader["LivroAlugado"]}");
+                                Console.WriteLine($"\n\nTitulo: {reader["Titulo"]}" +
+                                    $"\nIdAutor: {reader["IdAutor"]}" +
+                                    $"\nEditora: {reader["Editora"]}" +
+                                    $"\nAno de publicação: {reader["AnoPublicacao"]}" +
+                                    $"\nNumero de páginas: {reader["NumeroPaginas"]}" +
+                                    $"\nLivro alugado: {reader["LivroAlugado"]}");
                             }
                     }
                 }
@@ -117,12 +181,20 @@ namespace GerenciadorDeBiblioteca
                 using (SqlConnection sqlConnection = new SqlConnection(connectionString))
                 {
                     sqlConnection.Open();
-                    string query = "select * from livro where titulo = @titulo";
+                    string query = "select * from livro where IdAutor = (select Id from autor where nome = @autorPesquisado)";
                     using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
                     {
-                        cmd.Parameters.AddWithValue("@titulo", autorPesquisado);
-                        cmd.ExecuteNonQuery();
-                        Console.WriteLine("Livro excluído com sucesso.");
+                        cmd.Parameters.AddWithValue("@autorPesquisado", autorPesquisado);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                            while (reader.Read())
+                            {
+                                Console.WriteLine($"\n\nTitulo: {reader["Titulo"]}" +
+                                    $"\nIdAutor: {reader["IdAutor"]}" +
+                                    $"\nEditora: {reader["Editora"]}" +
+                                    $"\nAno de publicação: {reader["AnoPublicacao"]}" +
+                                    $"\nNumero de páginas: {reader["NumeroPaginas"]}" +
+                                    $"\nLivro alugado: {reader["LivroAlugado"]}");
+                            }
                     }
                 }
             }

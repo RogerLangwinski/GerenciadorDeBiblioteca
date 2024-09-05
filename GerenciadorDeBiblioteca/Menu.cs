@@ -16,7 +16,8 @@ namespace GerenciadorDeBiblioteca
         {
             byte escolhaMenu = 0;
             bool escolhaMenuCorreta = true;
-            Console.WriteLine("Digite a opção desejada:" +
+            Console.WriteLine(
+                "Digite a opção desejada:" +
                 "\n1 - Cadastrar livro" +
                 "\n2 - Cadastrar autor" +
                 "\n3 - Consultar livro" +
@@ -26,7 +27,7 @@ namespace GerenciadorDeBiblioteca
                 "\n7 - Devolver livro alugado" +
                 "\n8 - Excluir livro" +
                 "\n9 - Excluir autor" +
-                "\n10 - Sair");
+                "\n10 - Sair\n");
 
             try
             {
@@ -44,7 +45,7 @@ namespace GerenciadorDeBiblioteca
                 switch(escolhaMenu)
                 {
                     case 1: livro.CadastrarLivro(connectionString); break;
-                    case 2: autor.CadastrarAutor(connectionString); break;
+                    case 2: autor.CadastrarAutor(connectionString, ""); break;
                     case 3: livro.ConsultarLivro(connectionString); break;
                     case 8: livro.ExcluirLivro(connectionString); break;
                     case 9: autor.ExcluirAutor(connectionString); break;

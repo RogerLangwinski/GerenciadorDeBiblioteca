@@ -3,22 +3,34 @@ using System.Data.SqlClient;
 
 namespace GerenciadorDeBiblioteca
 {
-    internal class Autor
+    public class Autor
     {
-        /*public string Nome { get; private set; }
-        public string Nacionalidade { get; set; }
+        public int Id { get; private set; }
+        public string Nome { get; private set; }
+        /*public string Nacionalidade { get; set; }
         public DateTime AnoDeNascimento { get; set; }*/
 
         public Autor() { }
 
-        public void CadastrarAutor(string connectionString)
+        /*
+        public Autor(string nomeDoAutor)
         {
-            Console.WriteLine("Qual o nome do autor? (OBRIGATÓRIO)");
-            string nome = Console.ReadLine();
-            while (nome == "")
+            Nome = nomeDoAutor;
+            CadastrarAutor(connectionString);
+        }
+        */
+        public void CadastrarAutor(string connectionString, string nomeDoAutor)
+        {
+            Nome = nomeDoAutor;
+            if (Nome == "")
             {
-                Console.WriteLine("Nome não pode ser vazio.\nInsira o nome do autor:");
-                nome = Console.ReadLine();
+                Console.WriteLine("Qual o nome do autor? (OBRIGATÓRIO)");
+                Nome = Console.ReadLine();
+                while (Nome == "")
+                {
+                    Console.WriteLine("Nome não pode ser vazio.\nInsira o nome do autor:");
+                    Nome = Console.ReadLine();
+                }
             }
             Console.WriteLine("Qual a nacionalidade do autor? (OPCIONAL)");
             string nacionalidade = Console.ReadLine();
@@ -28,14 +40,14 @@ namespace GerenciadorDeBiblioteca
             using (SqlConnection sqlConnection = new SqlConnection(connectionString))
             {
                 sqlConnection.Open();
-                string query = "INSERT INTO autor (Nome, Nacionalidade, AnoDeNascimento)" +
+                string query = "INSERT INTO autor (Nome, Nacionalidade, AnoDeNascimento) OUTPUT INSERTED.Id " +
                                 "values(@nome, @nacionalidade, @anoDeNascimento)";
                 using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
                 {
-                    cmd.Parameters.AddWithValue("@nome", nome);
+                    cmd.Parameters.AddWithValue("@nome", Nome);
                     cmd.Parameters.AddWithValue("@nacionalidade", nacionalidade);
                     cmd.Parameters.AddWithValue("@anoDeNascimento", anoDeNascimento);
-                    cmd.ExecuteNonQuery();
+                    Id = (int)cmd.ExecuteScalar();
                     Console.WriteLine("Autor inserido com sucesso.");
                 }
             }
