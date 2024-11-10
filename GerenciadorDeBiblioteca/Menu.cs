@@ -1,16 +1,20 @@
-﻿using System;
+﻿using GerenciadorDeBiblioteca.Dados;
+using System;
 
 namespace GerenciadorDeBiblioteca
 {
     internal class Menu
     {
-        Livro livro = new Livro();
-        Autor autor = new Autor();
+        private readonly Conexao _conexao;
+        private Livro _livro;
+        private Autor _autor;
 
-        string connectionString =
-                "SERVER=DESKTOP-ROGER\\SQLEXPRESS;" +
-                "DATABASE=GERENCIADORDEBIBLIOTECA;" +
-                "TRUSTED_CONNECTION=TRUE;";
+        public Menu(Conexao conexao)
+        {
+            _conexao = conexao;
+            _livro = new Livro(_conexao);
+            _autor = new Autor(_conexao);
+        }
 
         public void MenuInicial()
         {
@@ -44,11 +48,11 @@ namespace GerenciadorDeBiblioteca
             {
                 switch(escolhaMenu)
                 {
-                    case 1: livro.CadastrarLivro(connectionString); break;
-                    case 2: autor.CadastrarAutor(connectionString, ""); break;
-                    case 3: livro.ConsultarLivro(connectionString); break;
-                    case 8: livro.ExcluirLivro(connectionString); break;
-                    case 9: autor.ExcluirAutor(connectionString); break;
+                    case 1: _livro.CadastrarLivro(); break;
+                    case 2: _autor.CadastrarAutor(""); break;
+                    case 3: _livro.ConsultarLivro(); break;
+                    case 8: _livro.ExcluirLivro(); break;
+                    case 9: _autor.ExcluirAutor(); break;
                     case 10: Console.WriteLine("Programa encerrado."); break;
 
                     default: Console.WriteLine("Escolha inválida. Programa encerrado.");break;

@@ -152,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Autor.cs" />
+    <Compile Include="Dados\Conexao.cs" />
     <Compile Include="Livro.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="Program.cs" />

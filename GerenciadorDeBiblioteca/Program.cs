@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GerenciadorDeBiblioteca.Dados;
+using System;
 
 namespace GerenciadorDeBiblioteca
 {
@@ -6,7 +7,7 @@ namespace GerenciadorDeBiblioteca
     {
         static void Main(string[] args)
         {
-            Menu menu = new Menu();
+            Menu menu = new Menu(new Conexao());
             menu.MenuInicial();
 
             Console.ReadKey();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GerenciadorDeBiblioteca.Dados;
+using System;
 using System.Data.SqlClient;
 
 namespace GerenciadorDeBiblioteca
@@ -9,8 +10,16 @@ namespace GerenciadorDeBiblioteca
         public string Nome { get; private set; }
         /*public string Nacionalidade { get; set; }
         public DateTime AnoDeNascimento { get; set; }*/
+        private readonly Conexao _conexao;
 
         public Autor() { }
+
+        public Autor(Conexao conexao)
+        {
+            _conexao = conexao;
+        }
+
+
 
         /*
         public Autor(string nomeDoAutor)
@@ -19,8 +28,10 @@ namespace GerenciadorDeBiblioteca
             CadastrarAutor(connectionString);
         }
         */
-        public void CadastrarAutor(string connectionString, string nomeDoAutor)
+
+        public void CadastrarAutor(string nomeDoAutor)
         {
+
             Nome = nomeDoAutor;
             if (Nome == "")
             {
@@ -37,12 +48,11 @@ namespace GerenciadorDeBiblioteca
             Console.WriteLine("Qual o ano de nascimento do autor? (OPCIONAL)");
             string anoDeNascimento = Console.ReadLine();
 
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+            using (var conexaoAberta = _conexao.AbrirConexao())
             {
-                sqlConnection.Open();
                 string query = "INSERT INTO autor (Nome, Nacionalidade, AnoDeNascimento) OUTPUT INSERTED.Id " +
                                 "values(@nome, @nacionalidade, @anoDeNascimento)";
-                using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
+                using (SqlCommand cmd = new SqlCommand(query, conexaoAberta))
                 {
                     cmd.Parameters.AddWithValue("@nome", Nome);
                     cmd.Parameters.AddWithValue("@nacionalidade", nacionalidade);
@@ -53,34 +63,29 @@ namespace GerenciadorDeBiblioteca
             }
         }
 
-        public void ExcluirAutor(string connectionString)
+        public void ExcluirAutor()
         {
             Console.WriteLine("Qual o ID do autor a ser excluído? (Enter se quiser excluir pelo nome)");
             string idExcluir = Console.ReadLine();
-            if (idExcluir == "")
+            using (var conexaoAberta = _conexao.AbrirConexao())
             {
-                Console.WriteLine("Qual o nome do autor a ser excluído?");
-                string nome = Console.ReadLine();
-
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                if (idExcluir == "")
                 {
-                    sqlConnection.Open();
+                    Console.WriteLine("Qual o nome do autor a ser excluído?");
+                    string nome = Console.ReadLine();
+
                     string query = "DELETE FROM autor WHERE Nome = @nome";
-                    using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
+                    using (SqlCommand cmd = new SqlCommand(query, conexaoAberta))
                     {
                         cmd.Parameters.AddWithValue("@nome", nome);
                         cmd.ExecuteNonQuery();
                         Console.WriteLine("Autor excluído com sucesso.");
                     }
                 }
-            }
-            else
-            {
-                using (SqlConnection sqlConnection = new SqlConnection(connectionString))
+                else
                 {
-                    sqlConnection.Open();
                     string query = "DELETE FROM autor WHERE Id = @id";
-                    using (SqlCommand cmd = new SqlCommand(query, sqlConnection))
+                    using (SqlCommand cmd = new SqlCommand(query, conexaoAberta))
                     {
                         cmd.Parameters.AddWithValue("@id", idExcluir);
                         cmd.ExecuteNonQuery();
